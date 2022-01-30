@@ -16,9 +16,9 @@ class boolean_value_handle:
                       'S_BATTINGTYPECOMMENTATORSPICK',
                       'S_BOWLINGTYPECOMMENTATORSPICK',
                       'S_FIELDINGCOMMENTATORSPICK', 'S_COMMENTATORSPICK', 'S_WICKETKEEPINGCOMMENTATORSPICK']:
-                        if f"{w_type}:True".upper() in self.source_df['S_COMMENTATORSPICK'].values[index].upper():
+                        if f"{w_type}:True".upper() in self.source_df[column].values[index].upper():
                             self.source_df[column].values[index] = 'Positive'
-                        elif f"{w_type}:False".upper() in self.source_df['S_COMMENTATORSPICK'].values[index]:
+                        elif f"{w_type}:False".upper() in self.source_df[column].values[index].upper():
                             self.source_df[column].values[index] = 'Negative'
                         else:
                             self.source_df[column].values[index] = 'None'
@@ -34,9 +34,9 @@ class boolean_value_handle:
                                 'S_RUNNINGBWWICKETSCOMMENTATORSNAME','S_COMMENTATORSNAME',
                                 'S_WICKETKEEPINGCOMMENTATORSNAME'
                                 ]:
-                        if f"{w_type}".upper() in self.source_df['S_COMMENTATORSPICK'].values[index].upper():
-                            self.source_df[column].values[index] = \
-                            self.source_df['S_COMMENTATORSPICK'].values[index].split(":")[0]
+
+                        if f"{w_type}".upper() in self.source_df[column].values[index].upper():
+                            self.source_df[column].values[index] = self.source_df[column].values[index].split(":")[0]
                         else:
                             self.source_df[column].values[index] = 'None'
 
@@ -198,6 +198,93 @@ class boolean_value_handle:
             'S_FIELDINGCAPTAINRECALLINGBATSMAN',
             'Fielding Captain Recalling Batsman')
 
+        self.replace_yes_no(
+            'S_DUETOINCORRECTUMPIRING',
+            'DUETOINCORRECTUMPIRING')
+
+        self.replace_yes_no(
+            'S_BADWEATHER',
+            'BADWEATHER')
+
+        self.replace_yes_no(
+            'S_CROWDUNREST',
+            'CROWDUNREST')
+
+        self.replace_yes_no(
+            'S_SIGHTSCREENADJUSTMENT',
+            'SIGHTSCREENADJUSTMENT')
+
+        self.replace_yes_no(
+            'S_STREAKERONFIELD',
+            'STREAKERONFIELD')
+
+        self.replace_yes_no(
+            'S_BEES',
+            'BEES')
+
+        self.replace_yes_no(
+            'S_DOG',
+            'DOG')
+
+        self.replace_yes_no(
+            'S_BIRD_BIRDS',
+            'BIRDBIRDS')
+
+        self.replace_yes_no(
+            'S_BALLCHANGE',
+            'BALLCHANGE')
+
+        self.replace_yes_no(
+            'S_DRINKSBREAK',
+            'DRINKSBREAK')
+
+        self.replace_yes_no(
+            'S_ADHOCDRINKSBREAK',
+            'ADHOCDRINKSBREAK')
+
+        self.replace_yes_no(
+            'S_INNINGSBREAK',
+            'INNINGSBREAK')
+
+        self.replace_yes_no(
+            'S_ROLLINGTHEPITCH',
+            'ROLLINGTHEPITCH')
+
+        self.replace_yes_no(
+            'S_BALLLOST',
+            'BALLLOST')
+
+        self.replace_yes_no(
+            'S_CHANGEOFGEAR',
+            'CHANGEOFGEAR')
+
+        self.replace_yes_no(
+            'S_TOSS',
+            'TOSS')
+
+        self.replace_yes_no(
+            'S_INTERVIEW',
+            'INTERVIEW')
+
+        self.replace_yes_no(
+            'S_PRACTICESESSIONS',
+            'PRACTICE_SESSION')
+
+        self.replace_yes_no(
+            'S_PRESENTATION',
+            'PRESENTATION')
+
+        self.replace_yes_no(
+            'S_PRIZEDISTRIBUTION',
+            'PRIZE_DISTRIBUTION')
+
+        self.replace_yes_no(
+            'S_PRESENTATION',
+            'PRESENTATION')
+
+        self.replace_yes_no(
+            'S_VICTORYLAP',
+            'VICTORY_LAP')
 
 
         self.replace_bool_value("BOUNDARY", [
@@ -225,10 +312,5 @@ class boolean_value_handle:
 
         self.replace_bool_value("WICKETKEEPING", [
             "S_WICKETKEEPINGCOMMENTATORSPICK", "S_WICKETKEEPINGCOMMENTATORSNAME"])
-
-
-
-
-
 
         return self.source_df
