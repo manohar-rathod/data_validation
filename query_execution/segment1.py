@@ -66,14 +66,15 @@ class Segment:
 
 
 
-            self.handle_delimiter('S_EMOTIONPLAYERNAME', ',', 0)
-            self.handle_delimiter('S_EMOTIONALASPECTS', ',', 1)
-            self.handle_delimiter('S_GESTURE', ':', 0)
-            self.handle_delimiter('S_GESTURE', ':', 1)
+            self.handle_delimiter('S_EMOTIONALASPECTS', ',', 1, 'S_EMOTIONPLAYERNAME')
+            self.handle_delimiter('S_EMOTIONPLAYERNAME', ',', 0, 'S_EMOTIONPLAYERNAME')
+            self.handle_delimiter('S_GESTURE', ':', 0, 'S_GESTURE')
+            self.handle_delimiter('S_GESTURE', ':', 1, 'S_GESTURE')
 
             self.source_df = self.source_df.replace(r'^\s*$', 'None', regex=True)
             self.replace_nan_with('S_WINNINGBOWL', 'No')
             self.replace_nan_with('S_OFFTHEBAT', '0')
+            self.replace_nan_with('S_EXTRAS', '0')
             self.replace_nan_with('S_FREEHIT', 'No')
             self.source_df = boolean_value_handle(self.source_df, self.destination_df).method_replace_yes_no_handle()
             self.source_df = milestone_cases(self.source_df, self.destination_df).milestone()
@@ -294,9 +295,14 @@ class Segment:
         self.source_df = self.source_df.replace(r'^\s*$', 'None', regex=True)
         self.destination_df = self.destination_df.replace(r'^\s*$', 'None', regex=True)
 
-    def handle_delimiter(self, column, delimeter, part):
+    def handle_delimiter(self, column, delimeter, part, column_to_look):
         for index in range(len(self.source_df)):
             try:
-                self.source_df[column].values[index] = self.source_df[column].values[index].split(delimeter)[part]
+                self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(',')[part]
             except Exception as error:
                 logger.info(error)
+            
+            try:
+               self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(":")[part]
+             except Exception as error:
+                 logger.info(error)
