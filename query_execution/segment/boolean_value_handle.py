@@ -179,6 +179,10 @@ class boolean_value_handle:
             'TROPHY')
 
         self.replace_yes_no(
+            'S_LIGHTSFAIL',
+            'LIGHTSFAIL')
+
+        self.replace_yes_no(
             'S_TEAMWALKINGINTOTHEFIELD',
             'TEAM_WALKING_INTO_THE_FIELD')
 
