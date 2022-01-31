@@ -20,7 +20,6 @@ class Segment:
 
     def segment1_data(self):
         logger.info("segment1 table data validation START")
-
         # to fetch distinct match id
         query = read_sql_file("./query_resources/source/segment1_parentid.sql")
 
@@ -37,8 +36,6 @@ class Segment:
 
             self.source_df.to_csv("./report/save_temp_data/source.csv")
 
-
-
             src_total_count = src_total_count + len(self.source_df.index)
 
             # reading and executing sql queries on destination table
@@ -46,13 +43,13 @@ class Segment:
                 f'{read_sql_file("./query_resources/destination/segment1.sql")} and S_PARENT_OBJ_ID = \'{id}\'',
                 self.destination_conn)
 
-            self.source_df.to_csv("./report/save_temp_data/destination.csv")
-
             # self.dnone_empty()
 
             dst_total_count = dst_total_count + len(self.destination_df.index)
 
             # type  conversion
+            self.duration()
+            self.millisecondsToduration()
             self.name_column_data_type_conversion()
             self.data_type_conversion(['S_COMMENTS'])
             self.data_type_conversion(['S_DAYS'])
@@ -63,8 +60,6 @@ class Segment:
             self.S_TypeOfShot()
             self.S_BallType()
             self.replace_none_values()
-
-
 
             self.handle_delimiter('S_EMOTIONALASPECTS', ',', 1, 'S_EMOTIONPLAYERNAME')
             self.handle_delimiter('S_EMOTIONPLAYERNAME', ',', 0, 'S_EMOTIONPLAYERNAME')
@@ -81,9 +76,9 @@ class Segment:
             self.source_df = cameraview_cases(self.source_df, self.destination_df).camera_view()
             self.destination_df = self.destination_df.replace(r'^\s*$', 'None', regex=True)
             # Sorting all data in source and destination dataframe
-            source_sort_df = self.source_df.sort_values(by=self.source_df.columns.tolist()).reset_index(drop=True)
+            source_sort_df = self.source_df.sort_values(by=self.source_df.columns.tolist()).reset_index(drop=True).applymap(str)
             destination_sort_df = self.destination_df.sort_values(by=self.destination_df.columns.tolist()).reset_index(
-                drop=True)
+                drop=True).applymap(str)
 
             try:
                 '''
@@ -301,8 +296,24 @@ class Segment:
                 self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(',')[part]
             except Exception as error:
                 logger.info(error)
-            
+
             try:
-               self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(":")[part]
-             except Exception as error:
-                 logger.info(error)
+                self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(":")[part]
+            except Exception as error:
+                logger.info(error)
+
+    def duration(self):
+        for index in range(len(self.source_df)):
+            self.source_df['S_DURATION'].values[index] = str(
+                int(self.source_df['S_TC_OUT'].values[index]) - int(self.source_df['S_TC_IN'].values[index]))
+
+    def millisecondsToduration(self):
+        for index in range(len(self.source_df)):
+            self.source_df['S_TC_IN'].values[index] = self.mToduration(int(self.source_df['S_TC_IN'].values[index]))
+            self.source_df['S_TC_OUT'].values[index] = self.mToduration(int(self.source_df['S_TC_OUT'].values[index]))
+
+    def mToduration(self, milliseconds):
+        seconds, milliseconds = divmod(milliseconds, 1000)
+        minutes, seconds = divmod(seconds, 60)
+        hour, minutes = divmod(minutes, 60)
+        return f'{int(hour):02d}:{int(minutes):02d}:{int(seconds):02d}.{int(milliseconds):03d}'
