@@ -8,7 +8,7 @@ class cameraview_cases:
             if value_type in self.source_df['S_CAMERAVIEW'].values[index].split(","):
                 self.source_df[column].values[index] = self.source_df[column].values[index]
             else:
-                self.source_df[column].values[index] = ""
+                self.source_df[column].values[index] = 'None'
 
     def camera_view(self):
         self.camera_view_handle('S_CELEBRITYFOCUS', 'CELEBRITYFOCUS')
