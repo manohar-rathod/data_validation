@@ -1,0 +1,4 @@
+2022-01-31 13:37:55,156 - DEBUG - MainProcess - root - configuration loaded
+2022-01-31 13:37:55,234 - INFO - MainProcess - connection.connect_db - CONNECTION SUCCESSFULLY source
+2022-01-31 13:37:55,250 - INFO - MainProcess - connection.connect_db - CONNECTION SUCCESSFULLY destination
+2022-01-31 13:37:55,250 - INFO - MainProcess - query_execution.segment1 - segment1 table data validation START

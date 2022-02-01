@@ -4,6 +4,7 @@ import logging
 
 from query_execution.segment.boolean_value_handle import boolean_value_handle
 from query_execution.segment.cameraview import cameraview_cases
+from query_execution.segment.drop_columns import drop_columns
 from query_execution.segment.milestone import milestone_cases
 from utils import report
 from utils.generic import make_directory, read_sql_file
@@ -24,24 +25,25 @@ class Segment:
         query = read_sql_file("./query_resources/source/segment1_parentid.sql")
 
         # Extracting all match ids in list
-        # ids = pd.read_sql(query, source_conn)["S_PARENT_OBJ_ID"]
-        ids = ['1221976']
+        ids = pd.read_sql(query, self.source_conn)["S_PARENT_OBJ_ID"]
+        #ids = ['1221976', '1223251','1226090','1222989','1228154']
+        #ids = ['1223732']
         src_total_count, dst_total_count, src_diff_count, dst_diff_count = 0, 0, 0, 0
+        count = 0
         # Looping over all match ids to compare
         for id in ids:
-
+            count = count + 1
+            logger.info(count)
             # reading and executing sql queries on source table
             self.source_df = pd.read_sql(
-                f'{read_sql_file("./query_resources/source/segment1.sql")} and video.id = \'{id}\'', self.source_conn)
-
-            self.source_df.to_csv("./report/save_temp_data/source.csv")
+                f'{read_sql_file("./query_resources/source/segment1.sql")} and video.id = \'{id}\'', self.source_conn).applymap(str)
 
             src_total_count = src_total_count + len(self.source_df.index)
 
             # reading and executing sql queries on destination table
             self.destination_df = pd.read_sql(
                 f'{read_sql_file("./query_resources/destination/segment1.sql")} and S_PARENT_OBJ_ID = \'{id}\'',
-                self.destination_conn)
+                self.destination_conn).applymap(str)
 
             # self.dnone_empty()
 
@@ -71,15 +73,18 @@ class Segment:
             self.replace_nan_with('S_OFFTHEBAT', '0')
             self.replace_nan_with('S_EXTRAS', '0')
             self.replace_nan_with('S_FREEHIT', 'No')
+            self.source_df['S_EMOTION'] = self.source_df["S_EMOTION"].replace('Agression', 'Aggression', regex=True)
             self.source_df = boolean_value_handle(self.source_df, self.destination_df).method_replace_yes_no_handle()
             self.source_df = milestone_cases(self.source_df, self.destination_df).milestone()
             self.source_df = cameraview_cases(self.source_df, self.destination_df).camera_view()
             self.destination_df = self.destination_df.replace(r'^\s*$', 'None', regex=True)
+
+
             # Sorting all data in source and destination dataframe
             source_sort_df = self.source_df.sort_values(by=self.source_df.columns.tolist()).reset_index(drop=True).applymap(str)
             destination_sort_df = self.destination_df.sort_values(by=self.destination_df.columns.tolist()).reset_index(
                 drop=True).applymap(str)
-
+            source_sort_df, destination_sort_df = drop_columns(source_sort_df, destination_sort_df).drop_columns_method()
             try:
                 '''
                  Comparing two dataframe , if count mismatces (eg: table 1 = 10, table 2= 30)
@@ -98,9 +103,9 @@ class Segment:
             except Exception as error:
                 print(id)
                 # adding csv file for both source and destination table
-                make_directory(f'./report/segment1/{id.replace(" ", "_")}')
-                source_sort_df.to_csv(f'./report/segment1/{id.replace(" ", "_")}/source.csv', index=False)
-                destination_sort_df.to_csv(f'./report/segment1/{id.replace(" ", "_")}/destination.csv', index=False)
+                make_directory(f'./report/segment1/{id}')
+                source_sort_df.to_csv(f'./report/segment1/{id}/source.csv', index=False)
+                destination_sort_df.to_csv(f'./report/segment1/{id}/destination.csv', index=False)
                 # logger.error(f"COUNT MISMATCH original error {error}")
 
         report.Report.append({"segment1": {"src_total_count": src_total_count, "dst_total_count": dst_total_count,
@@ -141,15 +146,14 @@ class Segment:
     # def S_BoundaryCommentatorsPick(self):
 
     def replace_none_values(self):
-        self.source_df["S_3RDUMPIREREFERRALBY"] = self.source_df["S_3RDUMPIREREFERRALBY"].replace("BATTING_SIDE",
-                                                                                                  "Batting Team",
-                                                                                                  regex=True)
-        self.source_df["S_3RDUMPIREREFERRALBY"] = self.source_df["S_3RDUMPIREREFERRALBY"].replace("BOWLING_SIDE",
-                                                                                                  "Bowler", regex=True)
-        self.source_df["S_3RDUMPIREREFERRALBY"] = self.source_df["S_3RDUMPIREREFERRALBY"].replace("FIELD_UMPIRE",
-                                                                                                  "Field Umpire",
-                                                                                                  regex=True)
-        self.in_for_replace_specific_value('S_3RDUMPIREREFERRALBY', ['Batting Team', 'Bowler', 'Field Umpir'])
+        self.column_mapping_replace("S_3RDUMPIREREFERRALBY",
+                                    {
+                                        "BATTING_SIDE": "Batting Team",
+                                        "BOWLING_SIDE":"Bowler",
+                                        "FIELD_UMPIRE":"Field Umpire"
+                                    })
+
+        self.in_for_replace_specific_value('S_3RDUMPIREREFERRALBY', ['Batting Team', 'Bowler', 'Field Umpire'])
 
         self.source_df["S_CREASEPOSITION"] = self.source_df["S_CREASEPOSITION"].replace("DOWN_THE_CREASE",
                                                                                         "Down The Pitch", regex=True)
@@ -164,35 +168,28 @@ class Segment:
                                                                                 regex=True)
         self.in_for_replace_specific_value('S_NOBALLTYPE', ['Above Shoulder', 'Over Stepping'])
 
-        self.source_df["S_EXTRABALLTYPE"] = self.source_df["S_EXTRABALLTYPE"].replace("BALLHITTINGHELMET",
-                                                                                      "BallHittingHelmet", regex=True)
-        self.source_df["S_EXTRABALLTYPE"] = self.source_df["S_EXTRABALLTYPE"].replace("BYE", "Byes", regex=True)
-        self.source_df["S_EXTRABALLTYPE"] = self.source_df["S_EXTRABALLTYPE"].replace("LEGBYE", "LegByes", regex=True)
-        self.source_df["S_EXTRABALLTYPE"] = self.source_df["S_EXTRABALLTYPE"].replace("WIDE", "Wide", regex=True)
-        self.source_df["S_EXTRABALLTYPE"] = self.source_df["S_EXTRABALLTYPE"].replace("NO", "NoBall", regex=True)
-        self.in_for_replace_specific_value('S_EXTRABALLTYPE', ['Byes', 'LegByes', 'Wide', 'NoBall'])
 
-        self.column_mapping_replace("S_SESSION",
-                                    {"SESSION 3": "Session 3", "SESSION 2": "Session 2", "SESSION 1": "Session 1"})
+        self.column_mapping_replace("S_EXTRABALLTYPE",{"LEGBYE": "LegByes","BALLHITTINGHELMET": "BallHittingHelmet", "BYE": "Byes", "WIDE":"Wide","NO":"NoBall"})
+        self.in_for_replace_specific_value('S_EXTRABALLTYPE', ['BallHittingHelmet','Byes', 'LegByes', 'Wide', 'NoBall'])
+
+        self.column_mapping_replace("S_SESSION",{"SESSION 3": "Session 3", "SESSION 2": "Session 2", "SESSION 1": "Session 1"})
         self.in_for_replace_specific_value('S_SESSION', ['Session 3', 'Session 2', 'Session 1'])
 
-        self.column_mapping_replace("S_WINNINGBOWL",
-                                    {"True": "Yes"})
+        self.column_mapping_replace("S_WINNINGBOWL",{"True": "Yes"})
         self.in_for_replace_specific_value('S_WINNINGBOWL', ['Yes'])
 
-        self.column_mapping_replace("S_BOWLINGANGLE",
-                                    {"ACROSS_THE_WICKET": "Across The Wicke", "AROUND_THE_WICKET": "Round The Wicket",
-                                     "OVER_THE_WICKET": "Over The Wicket"})
-        self.in_for_replace_specific_value('S_BOWLINGANGLE',
-                                           ['Across The Wicke', 'Round The Wicket', 'Over The Wicket'])
-        self.in_for_replace_specific_value('S_CATCHAPPEAL',
-                                           ['Normal', 'Bat pad', 'Glove'])
+        self.column_mapping_replace("S_BOWLINGANGLE",{"ACROSS_THE_WICKET": "Across The Wicket", "AROUND_THE_WICKET": "Round The Wicket","OVER_THE_WICKET": "Over The Wicket"})
+        self.in_for_replace_specific_value('S_BOWLINGANGLE',['Across The Wicket', 'Round The Wicket', 'Over The Wicket'])
+
+        self.column_mapping_replace("S_CATCHAPPEAL", {"Normal": "Normal","Bat pad":"Bat pad","Glove":"Glove"})
+        self.in_for_replace_specific_value('S_CATCHAPPEAL',['Normal', 'Bat pad', 'Glove'])
+
+        self.column_mapping_replace("S_RUNOUTAPPEAL",
+                                    {"Regular": "Regular", "By Deflection": "By Deflection"})
 
         self.in_for_replace_specific_value('S_RUNOUTAPPEAL',
                                            ['By Deflection', 'Regular'])
 
-        self.in_for_replace_specific_value('S_RUNOUTAPPEAL',
-                                           ['By Deflection', 'Regular'])
 
         self.column_mapping_replace("S_MISSEDCHANCE",
                                     {"CATCH": "Catch", "RUNOUT": "Run Out",
@@ -235,6 +232,17 @@ class Segment:
         self.in_for_replace_specific_value('S_INJURY',
                                            ['Batsman', 'Bowler', 'Fielder', 'Umpire'])
 
+        self.column_mapping_replace("S_FREEHIT",
+                                    {"True": "Yes", "False": "No"})
+        self.in_for_replace_specific_value('S_FREEHIT',
+                                           ['Yes', 'No'])
+
+        self.column_mapping_replace("S_PITCHREPORT",
+                                    {"PITCH_REPORT_BATTING": "Batting Wicket", "PITCH_REPORT_BOWLING": "Bowling Wicket",
+                                     "PITCH_REPORT_NEUTRAL":"Neutral"})
+        self.in_for_replace_specific_value('S_PITCHREPORT',
+                                           ["Batting Wicket", "Bowling Wicket", "Neutral"])
+
         self.column_mapping_replace("S_CROWDINVASION",
                                     {"DURINGTHEMATCH": "During The Match", "AFTERVICTORY": "After Victory",
                                      "BEFORETHEMATCH": "Before The Match"})
@@ -248,7 +256,26 @@ class Segment:
 
     def column_mapping_replace(self, column, values):
         for key, value in values.items():
-            self.source_df[column] = self.source_df[column].replace(key, value, regex=True)
+            for index in range(len(self.source_df)):
+                if key.upper().replace(" ", "") in self.split_values(self.source_df[column].values[index]):
+                    self.source_df[column].values[index] = value
+
+    def split_values(self, value):
+        split_var =  []
+
+        for itrem in value.split(','):
+            split_var.append(itrem.upper().replace(" ", ""))
+
+        for itrem in value.split(':'):
+            split_var.append(itrem.upper().replace(" ", ""))
+
+        split_var_1 = []
+        for var_s in split_var:
+            for itrem in var_s.split(':'):
+                split_var_1.append(itrem.upper().replace(" ", ""))
+
+
+        return  split_var_1
 
     def data_type_conversion(self, columns):
         for column in columns:
@@ -294,13 +321,17 @@ class Segment:
         for index in range(len(self.source_df)):
             try:
                 self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(',')[part]
+                if 'Agression' in self.source_df[column_to_look].values[index].split(',')[part]:
+                    self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(',')[part].replace('Agression', 'Aggression')
             except Exception as error:
-                logger.info(error)
+                pass
 
             try:
                 self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(":")[part]
+                if  'Agression' in self.source_df[column_to_look].values[index].split(',')[part]:
+                    self.source_df[column].values[index] = self.source_df[column_to_look].values[index].split(',')[part].replace('Agression', 'Aggression')
             except Exception as error:
-                logger.info(error)
+                pass
 
     def duration(self):
         for index in range(len(self.source_df)):

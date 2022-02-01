@@ -1,0 +1,14 @@
+2022-02-02 02:05:10,503 - DEBUG - MainProcess - root - configuration loaded
+2022-02-02 02:05:10,908 - INFO - MainProcess - connection.connect_db - CONNECTION SUCCESSFULLY source
+2022-02-02 02:05:10,939 - INFO - MainProcess - connection.connect_db - CONNECTION SUCCESSFULLY destination
+2022-02-02 02:05:10,939 - INFO - MainProcess - query_execution.segment1 - segment1 table data validation START
+2022-02-02 02:05:11,189 - INFO - MainProcess - query_execution.segment1 - 1
+2022-02-02 02:05:13,529 - INFO - MainProcess - query_execution.segment1 - 2
+2022-02-02 02:05:16,821 - INFO - MainProcess - query_execution.segment1 - 3
+2022-02-02 02:05:18,225 - INFO - MainProcess - query_execution.segment1 - 4
+2022-02-02 02:05:19,239 - INFO - MainProcess - query_execution.segment1 - 5
+2022-02-02 02:05:29,004 - INFO - MainProcess - query_execution.segment1 - 6
+2022-02-02 02:05:31,485 - INFO - MainProcess - query_execution.segment1 - 7
+2022-02-02 02:05:33,562 - INFO - MainProcess - query_execution.segment1 - 8
+2022-02-02 02:05:35,997 - INFO - MainProcess - query_execution.segment1 - 9
+2022-02-02 02:05:38,854 - INFO - MainProcess - query_execution.segment1 - 10

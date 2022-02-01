@@ -36,11 +36,23 @@ class boolean_value_handle:
                                 ]:
 
                         if f"{w_type}".upper() in self.source_df[column].values[index].upper():
-                            self.source_df[column].values[index] = self.source_df[column].values[index].split(":")[0]
+                            self.source_df[column].values[index] = self.split_diff_value(w_type, self.source_df[column].values[index])
                         else:
                             self.source_df[column].values[index] = 'None'
 
             return self.source_df
+
+    def split_diff_value(self, w_type, value):
+        return_value = "None"
+        for item in value.split(","):
+            for item_2 in item.split(":"):
+                if w_type.upper() == item_2.upper():
+                    return_value = item.split(":")[0]
+                    break
+
+
+
+        return return_value
 
     def replace_yes_no(self, column,  lbwappeal_type):
         for index in range(len(self.source_df)):
@@ -51,10 +63,32 @@ class boolean_value_handle:
 
         return self.source_df
 
+    def replace_yes_no_interview(self, column):
+        for index in range(len(self.source_df)):
+            if 'INTERVIEW'.upper() in self.source_df[column].values[index].upper()\
+                    and ('POST_MATCH_EVENT'.upper() in self.source_df[column].values[index].upper()\
+                    or 'PRE_MATCH_EVENT'.upper() in self.source_df[column].values[index].upper() ):
+                self.source_df[column].values[index] = "Yes"
+            else:
+                self.source_df[column].values[index] = "No"
+
+        return self.source_df
+
+    def replace_yes_no_postmatch(self, column):
+        for index in range(len(self.source_df)):
+            if 'POST_MATCH_EVENT'.upper() in self.source_df[column].values[index].upper():
+                    self.source_df[column].values[index] = "POST_MATCH_EVENT"
+            elif 'PRE_MATCH_EVENT'.upper() in self.source_df[column].values[index].upper():
+                self.source_df[column].values[index] = "PRE_MATCH_EVENT"
+            else:
+                self.source_df[column].values[index] = "No"
+
+        return self.source_df
+
     def method_replace_yes_no_handle(self):
+
         self.replace_yes_no('S_LBWAPPEAL', 'Lbw')
-        self.replace_yes_no('S_STUMPINGAPPEAL',
-                                                                                                  'Stumping')
+        self.replace_yes_no('S_STUMPINGAPPEAL','Stumping')
 
         self.replace_yes_no(
             'S_HANDLINGTHEBALLAPPEAL',
@@ -121,6 +155,7 @@ class boolean_value_handle:
         self.replace_yes_no(
             'S_NORMALCROWD',
             'CROWD')
+
 
         self.replace_yes_no(
             'S_CHEERLEADERS',
@@ -266,9 +301,8 @@ class boolean_value_handle:
             'S_TOSS',
             'TOSS')
 
-        self.replace_yes_no(
-            'S_INTERVIEW',
-            'INTERVIEW')
+        self.replace_yes_no_interview('S_INTERVIEW')
+        self.replace_yes_no_postmatch('S_EVENTTYPE')
 
         self.replace_yes_no(
             'S_PRACTICESESSIONS',
@@ -282,9 +316,6 @@ class boolean_value_handle:
             'S_PRIZEDISTRIBUTION',
             'PRIZE_DISTRIBUTION')
 
-        self.replace_yes_no(
-            'S_PRESENTATION',
-            'PRESENTATION')
 
         self.replace_yes_no(
             'S_VICTORYLAP',
@@ -309,8 +340,7 @@ class boolean_value_handle:
             "S_BOWLINGTYPECOMMENTATORSPICK", "S_BOWLINGTYPECOMMENTATORSNAME"])
         self.replace_bool_value("FIELDING", [
             "S_FIELDINGCOMMENTATORSPICK", "S_FIELDINGCOMMENTATORSNAME"])
-        self.replace_bool_value("WICKET", [
-            "S_WICKETKEEPINGCOMMENTATORSPICK", "S_WICKETKEEPINGCOMMENTATORSNAME"])
+
         self.replace_bool_value("FIELDING", [
             "S_COMMENTATORSPICK", "S_COMMENTATORSNAME"])
 

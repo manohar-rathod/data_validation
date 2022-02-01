@@ -1,0 +1,8 @@
+2022-02-02 00:33:05,605 - DEBUG - MainProcess - root - configuration loaded
+2022-02-02 00:33:06,213 - INFO - MainProcess - connection.connect_db - CONNECTION SUCCESSFULLY source
+2022-02-02 00:33:06,229 - INFO - MainProcess - connection.connect_db - CONNECTION SUCCESSFULLY destination
+2022-02-02 00:33:06,229 - INFO - MainProcess - query_execution.segment1 - segment1 table data validation START
+2022-02-02 00:33:06,229 - INFO - MainProcess - query_execution.segment1 - 1
+2022-02-02 00:33:08,584 - INFO - MainProcess - query_execution.segment1 - [{'segment1': {'src_total_count': 96, 'dst_total_count': 96, 'diff_count': 0}}]
+2022-02-02 00:33:08,584 - INFO - MainProcess - query_execution.segment1 - segment1 table data validation END
+2022-02-02 00:33:08,584 - INFO - MainProcess - __main__ - Final report => [{'segment1': {'src_total_count': 96, 'dst_total_count': 96, 'diff_count': 0}}]
